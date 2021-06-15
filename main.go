@@ -141,13 +141,17 @@ func main() {
 		log.Fatal(err)
 	}
 	defer response.Body.Close()
-
-	jsonResp, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	respByte := buf.Bytes()
+	/*
+		jsonResp, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 	var statusList []Status
-	if err := json.Unmarshal(jsonResp, &statusList); err != nil {
+	if err := json.Unmarshal(respByte, &statusList); err != nil {
 		log.Fatal(err)
 	}
 
@@ -192,6 +196,8 @@ func main() {
 	}
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, AutoMerge: true},
+		{Number: 2, AutoMerge: true},
+		{Number: 3, AutoMerge: true},
 	})
 	t.SetStyle(table.StyleLight)
 	t.Style().Options.SeparateRows = true
@@ -234,7 +240,7 @@ func getLog(url string) (string, error) {
 }
 
 func extractError(text string) []string {
-	re := regexp.MustCompile(`\[.*\] (?i)ERROR: (.*)`)
+	re := regexp.MustCompile(`.* (?i)ERROR: (.*)`)
 	found := re.FindAllStringSubmatch(text, -1)
 	var errorList []string
 	for _, f := range found {
